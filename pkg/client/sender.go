@@ -1,10 +1,10 @@
-package main
+package client
 
 import "fmt"
 
 // интерфейс получателя прогноза погоды
 type Sender interface {
-	Send(data *WeatherData) error
+	Send(data []byte) error
 }
 
 // Структура, реализующая интерфейс
@@ -19,8 +19,10 @@ func NewSenderToEmail(number string) *SenderToEmail {
 	}
 }
 
-func (s *SenderToEmail) Send(data *WeatherData) error {
+func (s *SenderToEmail) Send(data []byte) error {
 	fmt.Printf("data sent to number ... %s\n", s.number)
 	// maybe realisation ...
 	return nil
 }
+
+// TODO: Сделать реализацию отправки на почту
