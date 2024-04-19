@@ -13,8 +13,20 @@ type WeatherData struct {
 }
 
 func main() {
-	// TODO: add context
+	// ctx, cancel := context.WithCancel(context.Background())
+	// defer cancel()
+	// // сигнал завершения приложения ctrl+c
+	// c := make(chan os.Signal, 1)
+	// signal.Notify(c, os.Interrupt)
+
 	sender := client.NewSenderToEmail("0742")
 	newWeatherPoller := api.NewWPoller(sender)
 	newWeatherPoller.Start()
+	// горутина слушащая сигнал завершения приложения
+	// go func() {
+	// 	<-c
+	// 	newWeatherPoller.Close()
+	// 	cancel()
+	// }()
+	// <-ctx.Done()
 }

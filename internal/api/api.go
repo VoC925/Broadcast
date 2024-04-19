@@ -46,11 +46,12 @@ loop:
 		select {
 		case <-ticker.C:
 			// Получение сырых данных
-			weatherData, err := w.GetWeatherByCoordiantes(55.7522, 37.6156)
+			weatherData, err := w.getWeatherByCoordiantes(55.7522, 37.6156)
 			if err != nil {
 				log.Fatal(err)
 			}
-			fmt.Println(weatherData)
+			weatherData.GetTemperatureForNowMoment()
+			fmt.Printf("time: %s | temperature: %.2f\n", weatherData.CurTime, weatherData.CurTemp)
 		case <-w.closeCh:
 			break loop
 		}
@@ -60,10 +61,11 @@ loop:
 
 // close - метод, который закрывает канал closeCh.
 func (w *WPoller) Close() {
+	w.closeCh <- struct{}{}
 	close(w.closeCh)
 }
 
-// handleData обрабатывает сырых данных
+// handleData обрабатывает сырые данные
 func (w *WPoller) decodeData(r io.Reader) (*domain.WeatherData, error) {
 	var (
 		wData  domain.WeatherData
@@ -114,7 +116,7 @@ func (w *WPoller) decodeData(r io.Reader) (*domain.WeatherData, error) {
 
 // GetWeatherByCoordiantes - метод, который возвращает данные погоды, на основе
 // вводимых данных координат lat, long.
-func (w *WPoller) GetWeatherByCoordiantes(lat, long float64) (*domain.WeatherData, error) {
+func (w *WPoller) getWeatherByCoordiantes(lat, long float64) (*domain.WeatherData, error) {
 	uri := fmt.Sprintf("%s?latitude=%.2f&longitude=%.2f&hourly=temperature_2m", endpoint, lat, long)
 	// Request
 	req, err := http.NewRequest(http.MethodGet, uri, nil)

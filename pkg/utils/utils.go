@@ -1,6 +1,8 @@
 package utils
 
-import "fmt"
+import (
+	"fmt"
+)
 
 func ConvertSliceAnyToSliceString(slice []any) ([]string, error) {
 	sliceOfString := make([]string, 0, len(slice))
