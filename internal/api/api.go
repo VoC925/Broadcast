@@ -15,7 +15,8 @@ import (
 
 const (
 	// Api для получения данных погоды
-	endpoint = "https://api.open-meteo.com/v1/forecast" //latitude=55.7522&longitude=37.6156&hourly=temperature_2m
+	endpointBroadcast = "https://api.open-meteo.com/v1/forecast" //latitude=55.7522&longitude=37.6156&hourly=temperature_2m
+	endpointIP        = "http://ip-api.com/json/62.181.51.102"
 )
 
 var (
@@ -117,7 +118,7 @@ func (w *WPoller) decodeData(r io.Reader) (*domain.WeatherData, error) {
 // GetWeatherByCoordiantes - метод, который возвращает данные погоды, на основе
 // вводимых данных координат lat, long.
 func (w *WPoller) getWeatherByCoordiantes(lat, long float64) (*domain.WeatherData, error) {
-	uri := fmt.Sprintf("%s?latitude=%.2f&longitude=%.2f&hourly=temperature_2m", endpoint, lat, long)
+	uri := fmt.Sprintf("%s?latitude=%.2f&longitude=%.2f&hourly=temperature_2m", endpointBroadcast, lat, long)
 	// Request
 	req, err := http.NewRequest(http.MethodGet, uri, nil)
 	if err != nil {
