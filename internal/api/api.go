@@ -41,7 +41,10 @@ func NewWPoller(sender client.Sender) *WPoller {
 // start - метод, который запускает приложение с обновлением по time.Ticker.
 func (w *WPoller) Start() {
 	ticker := time.NewTicker(IntervalReload)
+	defer ticker.Stop()
+
 	fmt.Println("------------Weather checking start------------")
+
 loop:
 	for {
 		select {
@@ -57,6 +60,7 @@ loop:
 			break loop
 		}
 	}
+
 	fmt.Println("------------Weather checking finished------------")
 }
 
