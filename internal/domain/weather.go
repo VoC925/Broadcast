@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -28,4 +29,8 @@ func (d *WeatherData) GetTemperatureForNowMoment() {
 	}
 	d.CurTime = now
 	d.CurTemp = d.Temperature[index]
+}
+
+func (d *WeatherData) String() string {
+	return fmt.Sprintf("time: %s | temperature: %.2f\n", d.CurTime, d.CurTemp)
 }

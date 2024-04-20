@@ -21,7 +21,7 @@ const (
 
 var (
 	// временнной промежуток между которым происходит запрос к API
-	IntervalReload = time.Second * 2
+	IntervalReload = time.Hour * 1
 )
 
 // WPoller структура приложения, получающая температуру и отправляющая sender.
@@ -45,28 +45,30 @@ func (w *WPoller) Start() {
 
 	fmt.Println("------------Weather checking start------------")
 
-loop:
-	for {
-		select {
-		case <-ticker.C:
+	go func() {
+		for {
 			// Получение сырых данных
 			weatherData, err := w.getWeatherByCoordiantes(55.7522, 37.6156)
 			if err != nil {
 				log.Fatal(err)
 			}
 			weatherData.GetTemperatureForNowMoment()
-			fmt.Printf("time: %s | temperature: %.2f\n", weatherData.CurTime, weatherData.CurTemp)
-		case <-w.closeCh:
-			break loop
+			// fmt.Printf("time: %s | temperature: %.2f\n", weatherData.CurTime, weatherData.CurTemp)
+			// отправка погоды senderу
+			if err := w.sender.Send([]byte(weatherData.String())); err != nil {
+				fmt.Println(err)
+			}
+			<-ticker.C
 		}
-	}
+	}()
+
+	<-w.closeCh
 
 	fmt.Println("------------Weather checking finished------------")
 }
 
 // close - метод, который закрывает канал closeCh.
 func (w *WPoller) Close() {
-	w.closeCh <- struct{}{}
 	close(w.closeCh)
 }
 

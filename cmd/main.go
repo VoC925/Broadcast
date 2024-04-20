@@ -17,7 +17,7 @@ func main() {
 	wg := &sync.WaitGroup{}
 	wg.Add(2)
 
-	sender := client.NewSenderToEmail("0742")
+	sender := client.NewHermesSender("ewg.covaleov1999@yandex.ru", "Broadcast")
 	newWeatherPoller := api.NewWPoller(sender)
 
 	// горутина запускающая приложение
