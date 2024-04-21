@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/matcornic/hermes/v2"
+	"github.com/sirupsen/logrus"
 	"gopkg.in/gomail.v2"
 )
 
@@ -25,7 +26,10 @@ func NewSenderToEmail(number string) *SenderToEmail {
 }
 
 func (s *SenderToEmail) Send(data []byte) error {
-	fmt.Printf("data sent to number ... %s\n", s.number)
+	// fmt.Printf("data sent to number ... %s\n", s.number)
+	logrus.WithFields(logrus.Fields{
+		"msg": string(data),
+	}).Info("data sent")
 	// maybe realisation ...
 	return nil
 }
@@ -35,6 +39,9 @@ type HermesSender struct {
 	sender *gomail.Message // gomail для непосредственной отправки сообщения из hermes
 }
 
+// конструктор HermesSender, где входные параметры:
+// email - почта, на которую должны приходить прогнозы погоды
+// themeName - тема сообщения.
 func NewHermesSender(email, themeName string) *HermesSender {
 	return &HermesSender{
 		hermes: &hermes.Hermes{
@@ -45,12 +52,12 @@ func NewHermesSender(email, themeName string) *HermesSender {
 }
 
 func (hs *HermesSender) Send(data []byte) error {
-	// сообщение
+	// экземпляр сообщения
 	email := hermes.Email{
 		Body: hermes.Body{
-			Name: "great person",
+			Name: "Eugene", // приветствие в начале сообщения: "Hi, Eugene"
 			Intros: []string{
-				fmt.Sprintf("Weather in your location: %s °C", string(data)),
+				fmt.Sprintf("Weather in your location for 1 hour: %s °C", string(data)),
 			},
 			Outros: []string{
 				"Need help, or have questions? Just reply to this email, we'd love to help.",

@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"net/http"
 )
 
 func ConvertSliceAnyToSliceString(slice []any) ([]string, error) {
@@ -26,4 +27,18 @@ func ConvertSliceAnyToSliceFloat(slice []any) ([]float64, error) {
 		sliceOfFloat = append(sliceOfFloat, valFloat)
 	}
 	return sliceOfFloat, nil
+}
+
+func GetRequest(uri string) (*http.Response, error) {
+	req, err := http.NewRequest(http.MethodGet, uri, nil)
+	if err != nil {
+		return nil, err
+	}
+	client := &http.Client{}
+	// запрос к API
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
 }

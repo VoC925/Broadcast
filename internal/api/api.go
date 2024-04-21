@@ -4,66 +4,84 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
-	"net/http"
 	"time"
 
 	"github.com/VoC925/WeatherChecker/internal/domain"
 	"github.com/VoC925/WeatherChecker/pkg/client"
 	"github.com/VoC925/WeatherChecker/pkg/utils"
+	"github.com/sirupsen/logrus"
 )
 
 const (
 	// Api для получения данных погоды
 	endpointBroadcast = "https://api.open-meteo.com/v1/forecast" //latitude=55.7522&longitude=37.6156&hourly=temperature_2m
-	endpointIP        = "http://ip-api.com/json/62.181.51.102"
+	endpointIP        = "http://ip-api.com"                      // /json/62.181.51.102
 )
 
 var (
 	// временнной промежуток между которым происходит запрос к API
-	IntervalReload = time.Hour * 1
+	IntervalReload = time.Second * 1
 )
 
 // WPoller структура приложения, получающая температуру и отправляющая sender.
 type WPoller struct {
-	sender  client.Sender // интерфейс, куда отправлять данные погоды
-	closeCh chan struct{} // канал закрывающий приложение
+	addressIP string        // IP адрес пользователя
+	sender    client.Sender // интерфейс, куда отправлять данные погоды
+	closeCh   chan struct{} // канал закрывающий приложение
 }
 
 // NewWPoller - конструктор структуры WPoller.
-func NewWPoller(sender client.Sender) *WPoller {
+func NewWPoller(addr string, sender client.Sender) *WPoller {
 	return &WPoller{
-		sender:  sender,
-		closeCh: make(chan struct{}),
+		addressIP: addr,
+		sender:    sender,
+		closeCh:   make(chan struct{}),
 	}
 }
 
-// start - метод, который запускает приложение с обновлением по time.Ticker.
+// start - метод, который запускает приложение с обновлением по time.Ticker
+// входные параметры - координаты пользователя: Longitude, Latitude
 func (w *WPoller) Start() {
 	ticker := time.NewTicker(IntervalReload)
 	defer ticker.Stop()
 
 	fmt.Println("------------Weather checking start------------")
 
-	go func() {
+	logrus.WithFields(logrus.Fields{
+		"IP": w.addressIP,
+	}).Info("App started")
+
+	// Получение координат по IP адресу
+	coordinates, err := w.getCoordinatesByIP()
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"api": "IP",
+		}).Errorf(err.Error())
+	}
+
+	go func(lat, lon float64) {
 		for {
 			// Получение сырых данных
-			weatherData, err := w.getWeatherByCoordiantes(55.7522, 37.6156)
+			weatherData, err := w.getWeatherByCoordiantes(lat, lon)
 			if err != nil {
-				log.Fatal(err)
+				logrus.WithFields(logrus.Fields{
+					"api": "Weather",
+				}).Errorf(err.Error())
+				continue
 			}
 			weatherData.GetTemperatureForNowMoment()
-			// fmt.Printf("time: %s | temperature: %.2f\n", weatherData.CurTime, weatherData.CurTemp)
-			// отправка погоды senderу
+			// отправка погоды sender
 			if err := w.sender.Send([]byte(weatherData.String())); err != nil {
-				fmt.Println(err)
+				logrus.Errorf(err.Error())
+				continue
 			}
 			<-ticker.C
 		}
-	}()
+	}(coordinates.Lat, coordinates.Lon)
 
 	<-w.closeCh
 
+	logrus.Infof("App finished")
 	fmt.Println("------------Weather checking finished------------")
 }
 
@@ -73,7 +91,7 @@ func (w *WPoller) Close() {
 }
 
 // handleData обрабатывает сырые данные
-func (w *WPoller) decodeData(r io.Reader) (*domain.WeatherData, error) {
+func (w *WPoller) decodeWeatherData(r io.Reader) (*domain.WeatherData, error) {
 	var (
 		wData  domain.WeatherData
 		m      = make(map[string]*json.RawMessage)
@@ -125,23 +143,40 @@ func (w *WPoller) decodeData(r io.Reader) (*domain.WeatherData, error) {
 // вводимых данных координат lat, long.
 func (w *WPoller) getWeatherByCoordiantes(lat, long float64) (*domain.WeatherData, error) {
 	uri := fmt.Sprintf("%s?latitude=%.2f&longitude=%.2f&hourly=temperature_2m", endpointBroadcast, lat, long)
-	// Request
-	req, err := http.NewRequest(http.MethodGet, uri, nil)
-	if err != nil {
-		return nil, err
-	}
-	client := &http.Client{}
 	// запрос к API
-	resp, err := client.Do(req)
+	resp, err := utils.GetRequest(uri)
 	if err != nil {
 		return nil, err
 	}
 	// обработка данных из io.Reader с чтением и получением структуры domain.WeatherData
-	weatherD, err := w.decodeData(resp.Body)
+	weatherD, err := w.decodeWeatherData(resp.Body)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 
 	return weatherD, nil
+}
+
+type coordinates struct {
+	Lat float64 `json:"lat"`
+	Lon float64 `json:"lon"`
+}
+
+// getCoordinatesByIP метод, который возвращает координаты по IP адресу
+func (w *WPoller) getCoordinatesByIP() (*coordinates, error) {
+	uri := fmt.Sprintf("%s/json/%s", endpointIP, w.addressIP)
+	// запрос к API
+	resp, err := utils.GetRequest(uri)
+	if err != nil {
+		return nil, err
+	}
+
+	coord := coordinates{}
+
+	if err := json.NewDecoder(resp.Body).Decode(&coord); err != nil {
+		return nil, err
+	}
+
+	return &coord, nil
 }

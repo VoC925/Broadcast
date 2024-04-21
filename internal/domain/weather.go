@@ -14,6 +14,10 @@ type WeatherData struct {
 	CurTemp     float64
 }
 
+func (d *WeatherData) String() string {
+	return fmt.Sprintf("time: %s | temperature: %.2f\n", d.CurTime, d.CurTemp)
+}
+
 func (d *WeatherData) GetTemperatureForNowMoment() {
 	// "2024-04-19T00:00" - формат времени от API
 	// "2006-01-02T15:04:05Z07:00" = RFC3339
@@ -29,8 +33,4 @@ func (d *WeatherData) GetTemperatureForNowMoment() {
 	}
 	d.CurTime = now
 	d.CurTemp = d.Temperature[index]
-}
-
-func (d *WeatherData) String() string {
-	return fmt.Sprintf("time: %s | temperature: %.2f\n", d.CurTime, d.CurTemp)
 }
