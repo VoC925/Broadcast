@@ -61,3 +61,76 @@ func TestConvertingAnyToFloat(t *testing.T) {
 		assert.True(t, reflect.DeepEqual(got, dataLine.expected))
 	}
 }
+
+type testingSlice struct {
+	incomingData  []string
+	target        string
+	expectedIndex int
+}
+
+func getTestingSlice() []testingSlice {
+	return []testingSlice{
+		{
+			incomingData: []string{
+				"2024-04-22T00:00",
+				"2024-04-22T01:00",
+				"2024-04-22T02:00",
+				"2024-04-22T03:00",
+				"2024-04-22T04:00",
+				"2024-04-22T05:00",
+				"2024-04-22T06:00",
+				"2024-04-22T07:00",
+				"2024-04-22T08:00",
+				"2024-04-22T09:00",
+				"2024-04-22T10:00",
+				"2024-04-22T11:00",
+			},
+			target:        "2024-04-22T01:00",
+			expectedIndex: 1,
+		},
+		{
+			incomingData: []string{
+				"2024-04-22T00:00",
+				"2024-04-22T01:00",
+				"2024-04-22T02:00",
+				"2024-04-22T03:00",
+				"2024-04-22T04:00",
+				"2024-04-22T05:00",
+				"2024-04-22T06:00",
+				"2024-04-22T07:00",
+				"2024-04-22T08:00",
+				"2024-04-22T09:00",
+				"2024-04-22T10:00",
+				"2024-04-22T11:00",
+			},
+			target:        "2024-04-22T07:00",
+			expectedIndex: 7,
+		},
+		{
+			incomingData: []string{
+				"2024-04-22T00:00",
+				"2024-04-22T01:00",
+				"2024-04-22T02:00",
+				"2024-04-22T03:00",
+				"2024-04-22T04:00",
+				"2024-04-22T05:00",
+				"2024-04-22T06:00",
+				"2024-04-22T07:00",
+				"2024-04-22T08:00",
+				"2024-04-22T09:00",
+				"2024-04-22T10:00",
+				"2024-04-22T11:00",
+			},
+			target:        "2024-04-22T012:00",
+			expectedIndex: -1,
+		},
+	}
+}
+
+func TestBinarySearch(t *testing.T) {
+	arrs := getTestingSlice()
+	for _, dataLine := range arrs {
+		index := BinarySearch(dataLine.incomingData, dataLine.target)
+		assert.Equal(t, dataLine.expectedIndex, index)
+	}
+}
