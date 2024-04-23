@@ -13,7 +13,7 @@ type Sender interface {
 	Send(data []byte) error
 }
 
-// Структура, реализующая интерфейс
+// Структура - заглушка для тестирования приложения
 type SenderToEmail struct {
 	number string
 }
@@ -26,17 +26,19 @@ func NewSenderToEmail(number string) *SenderToEmail {
 }
 
 func (s *SenderToEmail) Send(data []byte) error {
-	// fmt.Printf("data sent to number ... %s\n", s.number)
+
 	logrus.WithFields(logrus.Fields{
 		"msg": string(data),
 	}).Info("data sent")
-	// maybe realisation ...
+
 	return nil
 }
 
+// реализация интерфейса с использованием API для формирования
+// и отправки сообщений на email почту
 type HermesSender struct {
-	hermes *hermes.Hermes  // hermes для создания красивых сообщений HTML
-	sender *gomail.Message // gomail для непосредственной отправки сообщения из hermes
+	hermes *hermes.Hermes  // hermes для создания сообщений HTML
+	sender *gomail.Message // gomail для непосредственной отправки сообщения
 }
 
 // конструктор HermesSender, где входные параметры:
@@ -76,7 +78,7 @@ func (hs *HermesSender) Send(data []byte) error {
 	hs.sender.SetHeader("To", "ewg.covaleov1999@yandex.ru")
 	hs.sender.SetHeader("Subject", "Broadcast")
 	hs.sender.AddAlternative("text/html", emailBody)
-
+	// отпраквка на почту
 	d := gomail.NewDialer("smtp.yandex.ru", 587, "ewg.covaleov1999@yandex.ru", "kov999ALEV2039")
 
 	if err := d.DialAndSend(hs.sender); err != nil {

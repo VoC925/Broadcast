@@ -32,12 +32,12 @@ func (d *WeatherData) String() string {
 // на основе данных в слайсах Time и Temperature
 func (d *WeatherData) GetTemperatureForNowMoment() bool {
 	// "2024-04-19T00:00" - формат времени от API
-	// "2006-01-02T15:04:05Z07:00" = RFC3339
-	// index := new(int)
+	// "2006-01-02T15:04:05Z07:00" - формат времени в пакете time RFC3339
 	now := time.Now().Format(time.RFC3339)
+	// приведение текущего времени к формату времени, полусенного от API
 	currentTime := now[:13]
 
-	// поиск с проверкой: есть ли текущее время в слайсе CurTime
+	// поиск индекса с проверкой: есть ли текущее время в слайсе Time
 	index := utils.BinarySearch(d.Time, strings.Join([]string{currentTime, ":00"}, ""))
 	if index == -1 {
 		return false

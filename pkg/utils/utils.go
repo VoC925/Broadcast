@@ -5,6 +5,7 @@ import (
 	"net/http"
 )
 
+// функция на вход принимает слайс интерфейсов, а на выходе отдает слайс string
 func ConvertSliceAnyToSliceString(slice []any) ([]string, error) {
 	sliceOfString := make([]string, 0, len(slice))
 	for _, elem := range slice {
@@ -17,6 +18,7 @@ func ConvertSliceAnyToSliceString(slice []any) ([]string, error) {
 	return sliceOfString, nil
 }
 
+// функция на вход принимает слайс интерфейсов, а на выходе отдает слайс float64
 func ConvertSliceAnyToSliceFloat(slice []any) ([]float64, error) {
 	sliceOfFloat := make([]float64, 0, len(slice))
 	for _, elem := range slice {
@@ -29,6 +31,8 @@ func ConvertSliceAnyToSliceFloat(slice []any) ([]float64, error) {
 	return sliceOfFloat, nil
 }
 
+// функция для отправки http запросов по адресу uri
+// функция отдает структуру http.Response и возможную ошибку
 func GetRequest(uri string) (*http.Response, error) {
 	req, err := http.NewRequest(http.MethodGet, uri, nil)
 	if err != nil {

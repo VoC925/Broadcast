@@ -1,0 +1,16 @@
+name: broadcast
+
+on: push
+
+jobs:
+#CI
+  test:
+    runs-on: ubuntu-latest
+    container: golang:1.22
+    steps:
+      - uses: actions/checkout@v4
+      - name: Vet
+        run: go vet ./...
+      - name: Test
+        run: go test -v ./...
+
